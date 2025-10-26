@@ -6,6 +6,10 @@ const ArticleWriter = () => {
   const [outputText, setOutputText] = useState('');
   const [wordLength, setWordLength] = useState('500');
   const [isLoading, setIsLoading] = useState(false);
+  const [showTableBuilder, setShowTableBuilder] = useState(false);
+  const [tableRows, setTableRows] = useState(2);
+  const [tableCols, setTableCols] = useState(3);
+  const [tableData, setTableData] = useState({});
 
   const handleGenerate = async () => {
     if (!topic.trim()) {
@@ -29,6 +33,50 @@ const ArticleWriter = () => {
   const handleClear = () => {
     setTopic('');
     setOutputText('');
+  };
+
+  const handleTableCellChange = (row, col, value) => {
+    setTableData({
+      ...tableData,
+      [`${row}-${col}`]: value
+    });
+  };
+
+  const generateTable = () => {
+    let markdownTable = '';
+    
+    // Generate header row
+    markdownTable += '|';
+    for (let col = 0; col < tableCols; col++) {
+      const value = tableData[`0-${col}`] || `Header ${col + 1}`;
+      markdownTable += ` ${value} |`;
+    }
+    markdownTable += '\n';
+    
+    // Generate separator row
+    markdownTable += '|';
+    for (let col = 0; col < tableCols; col++) {
+      markdownTable += ' --- |';
+    }
+    markdownTable += '\n';
+    
+    // Generate data rows
+    for (let row = 1; row < tableRows; row++) {
+      markdownTable += '|';
+      for (let col = 0; col < tableCols; col++) {
+        const value = tableData[`${row}-${col}`] || '';
+        markdownTable += ` ${value} |`;
+      }
+      markdownTable += '\n';
+    }
+    
+    return markdownTable;
+  };
+
+  const insertTable = () => {
+    const tableMarkdown = generateTable();
+    setOutputText(prev => prev + '\n\n' + tableMarkdown);
+    setShowTableBuilder(false);
   };
 
   return (
@@ -67,6 +115,12 @@ const ArticleWriter = () => {
               Clear
             </button>
             <button 
+              className="btn btn-secondary" 
+              onClick={() => setShowTableBuilder(!showTableBuilder)}
+            >
+              {showTableBuilder ? 'Hide Table Builder' : 'Create Table'}
+            </button>
+            <button 
               className="btn btn-primary" 
               onClick={handleGenerate}
               disabled={!topic.trim() || isLoading}
@@ -74,6 +128,62 @@ const ArticleWriter = () => {
               {isLoading ? 'Generating...' : 'Generate Article'}
             </button>
           </div>
+
+          {showTableBuilder && (
+            <div className="table-builder">
+              <h3>Table Builder</h3>
+              <div className="table-controls">
+                <div className="control-group">
+                  <label>Rows:</label>
+                  <input
+                    type="number"
+                    min="2"
+                    max="10"
+                    value={tableRows}
+                    onChange={(e) => setTableRows(parseInt(e.target.value))}
+                    className="table-input"
+                  />
+                </div>
+                <div className="control-group">
+                  <label>Columns:</label>
+                  <input
+                    type="number"
+                    min="2"
+                    max="10"
+                    value={tableCols}
+                    onChange={(e) => setTableCols(parseInt(e.target.value))}
+                    className="table-input"
+                  />
+                </div>
+              </div>
+              
+              <div className="table-editor">
+                <div className="table-grid" style={{ gridTemplateColumns: `repeat(${tableCols}, 1fr)` }}>
+                  {Array.from({ length: tableRows }).map((_, row) =>
+                    Array.from({ length: tableCols }).map((_, col) => (
+                      <input
+                        key={`${row}-${col}`}
+                        type="text"
+                        placeholder={row === 0 ? `Header ${col + 1}` : `Cell ${row},${col + 1}`}
+                        value={tableData[`${row}-${col}`] || ''}
+                        onChange={(e) => handleTableCellChange(row, col, e.target.value)}
+                        className="table-cell"
+                      />
+                    ))
+                  )}
+                </div>
+              </div>
+              
+              <div className="table-actions">
+                <button className="btn btn-secondary" onClick={() => setShowTableBuilder(false)}>
+                  Cancel
+                </button>
+                <button className="btn btn-primary" onClick={insertTable}>
+                  Insert Table
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {outputText && (
