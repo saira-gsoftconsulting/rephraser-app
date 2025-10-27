@@ -42,66 +42,122 @@ const ArticleWriter = () => {
       wordCount = 500; // Default to 500 words
     }
     
-    // Enhanced content generation with more variety
-    const introPhrases = [
-      `In today's digital age, ${topic} has emerged as a critical skill.`,
-      `${topic.charAt(0).toUpperCase() + topic.slice(1)} continues to evolve, shaping the way we work and live.`,
-      `Understanding ${topic} is no longer optional—it's essential for success in modern life.`,
-      `The world of ${topic} offers endless possibilities for those willing to learn.`
-    ];
+    // Detect topic category
+    const lowerTopic = topic.toLowerCase();
+    let category = 'general';
     
-    const benefitPhrases = [
-      `Mastering ${topic} opens doors to new opportunities and career advancement.`,
-      `Those proficient in ${topic} often find themselves at a significant advantage in their professional lives.`,
-      `The practical applications of ${topic} extend across multiple industries and sectors.`,
-      `Investing time in ${topic} pays dividends through improved efficiency and effectiveness.`
-    ];
+    if (lowerTopic.includes('girl') || lowerTopic.includes('woman') || lowerTopic.includes('life') || lowerTopic.includes('lifestyle')) {
+      category = 'lifestyle';
+    } else if (lowerTopic.includes('tech') || lowerTopic.includes('code') || lowerTopic.includes('programming') || lowerTopic.includes('software')) {
+      category = 'tech';
+    } else if (lowerTopic.includes('health') || lowerTopic.includes('fitness') || lowerTopic.includes('wellness')) {
+      category = 'health';
+    } else if (lowerTopic.includes('business') || lowerTopic.includes('career') || lowerTopic.includes('entrepreneur')) {
+      category = 'business';
+    } else if (lowerTopic.includes('food') || lowerTopic.includes('cooking') || lowerTopic.includes('recipe')) {
+      category = 'food';
+    }
     
-    const tips = [
-      `Start with the basics and build a strong foundation.`,
-      `Practice regularly to reinforce your understanding.`,
-      `Seek out real-world examples and case studies.`,
-      `Don't be afraid to make mistakes—they're learning opportunities.`,
-      `Stay updated with the latest trends and developments.`,
-      `Connect with a community of learners for support and insights.`
-    ];
-    
+    // Generate article based on category
+    return generateContentByCategory(topic, category, wordCount);
+  };
+
+  const generateContentByCategory = (topic, category, wordCount) => {
     let article = '';
     
     // Title
     article += `# ${topic.charAt(0).toUpperCase() + topic.slice(1)}: A Complete Guide\n\n`;
     
-    // Introduction with variety
-    const introIndex = topic.length % introPhrases.length;
-    article += introPhrases[introIndex] + '\n\n';
+    // Category-specific introduction
+    let intro = '';
+    let mainContent = '';
     
-    article += `In this comprehensive guide, we'll explore everything you need to know about ${topic}, from foundational concepts to advanced strategies.\n\n`;
+    switch(category) {
+      case 'lifestyle':
+        intro = `${topic.charAt(0).toUpperCase() + topic.slice(1)} is an important aspect of modern living. Whether you're looking to improve your daily routine, enhance your wellbeing, or explore new opportunities, understanding ${topic} can transform your life.`;
+        mainContent = `## What Makes ${topic.charAt(0).toUpperCase() + topic.slice(1)} Important?\n\n` +
+          `${topic.charAt(0).toUpperCase() + topic.slice(1)} impacts every area of your life, from your relationships and career to your health and happiness. By focusing on this area, you can create positive changes that last a lifetime.\n\n` +
+          `## Key Benefits\n\n` +
+          `- Improved overall wellbeing and life satisfaction\n` +
+          `- Better relationships with family and friends\n` +
+          `- Enhanced self-confidence and personal growth\n` +
+          `- Greater work-life balance\n` +
+          `- Increased opportunities for success\n\n`;
+        break;
+        
+      case 'tech':
+        intro = `Technology continues to evolve rapidly, and ${topic} is at the forefront of this digital transformation. Whether you're a beginner or experienced developer, understanding ${topic} is crucial for staying competitive in today's tech-driven world.`;
+        mainContent = `## Understanding ${topic.charAt(0).toUpperCase() + topic.slice(1)}\n\n` +
+          `${topic.charAt(0).toUpperCase() + topic.slice(1)} is essential for modern software development and digital innovation. It offers powerful capabilities that enable developers to create efficient, scalable solutions.\n\n` +
+          `## Key Benefits\n\n` +
+          `- Modern development practices and tools\n` +
+          `- Career advancement opportunities\n` +
+          `- Higher earning potential\n` +
+          `- Ability to build innovative solutions\n` +
+          `- Staying relevant in the tech industry\n\n`;
+        break;
+        
+      case 'health':
+        intro = `Taking care of your health is one of the most important investments you can make. Understanding ${topic} can help you lead a healthier, more active lifestyle and prevent future health issues.`;
+        mainContent = `## The Importance of ${topic.charAt(0).toUpperCase() + topic.slice(1)}\n\n` +
+          `${topic.charAt(0).toUpperCase() + topic.slice(1)} plays a vital role in maintaining overall wellness. By incorporating healthy practices into your daily routine, you can improve both your physical and mental wellbeing.\n\n` +
+          `## Key Benefits\n\n` +
+          `- Increased energy and vitality\n` +
+          `- Improved mental clarity and focus\n` +
+          `- Better physical fitness and strength\n` +
+          `- Enhanced immune system\n` +
+          `- Long-term health benefits\n\n`;
+        break;
+        
+      case 'business':
+        intro = `In today's competitive business landscape, ${topic} is essential for success. Whether you're an entrepreneur or corporate professional, mastering ${topic} can significantly impact your career growth and business outcomes.`;
+        mainContent = `## Why ${topic.charAt(0).toUpperCase() + topic.slice(1)} Matters in Business\n\n` +
+          `${topic.charAt(0).toUpperCase() + topic.slice(1)} is a critical skill for business success. It helps professionals make informed decisions, build strategic relationships, and drive organizational growth.\n\n` +
+          `## Key Benefits\n\n` +
+          `- Career advancement opportunities\n` +
+          `- Increased earning potential\n` +
+          `- Better business outcomes\n` +
+          `- Enhanced leadership skills\n` +
+          `- Competitive advantage\n\n`;
+        break;
+        
+      case 'food':
+        intro = `Good food brings people together and nourishes both body and soul. Exploring ${topic} opens up a world of flavors, techniques, and culinary experiences that can enhance your daily life.`;
+        mainContent = `## Exploring ${topic.charAt(0).toUpperCase() + topic.slice(1)}\n\n` +
+          `${topic.charAt(0).toUpperCase() + topic.slice(1)} is not just about eating—it's about creating memorable experiences, learning new skills, and enjoying the pleasures of good food.\n\n` +
+          `## Key Benefits\n\n` +
+          `- Improved nutrition and health\n` +
+          `- Creative expression through cooking\n` +
+          `- Social connections and shared meals\n` +
+          `- Cost savings from home cooking\n` +
+          `- Appreciation of different cultures\n\n`;
+        break;
+        
+      default:
+        intro = `${topic.charAt(0).toUpperCase() + topic.slice(1)} is an important topic worth exploring. Whether you're a beginner or experienced enthusiast, understanding ${topic} can provide valuable insights and opportunities.`;
+        mainContent = `## Understanding ${topic.charAt(0).toUpperCase() + topic.slice(1)}\n\n` +
+          `${topic.charAt(0).toUpperCase() + topic.slice(1)} encompasses various aspects that are crucial for both beginners and experienced practitioners. This guide provides valuable insights to help you navigate this area effectively.\n\n` +
+          `## Key Benefits\n\n` +
+          `- Enhanced knowledge and understanding\n` +
+          `- Practical applications in daily life\n` +
+          `- Personal and professional growth\n` +
+          `- New opportunities and possibilities\n` +
+          `- Improved confidence and skills\n\n`;
+    }
     
-    // Main Content
-    article += `## Understanding ${topic.charAt(0).toUpperCase() + topic.slice(1)}\n\n`;
-    article += `${topic.charAt(0).toUpperCase() + topic.slice(1)} encompasses various aspects that are crucial for both beginners and experienced practitioners. `;
-    article += `Whether you're just starting out or looking to enhance your existing knowledge, this guide provides valuable insights.\n\n`;
-    
-    article += `## Key Benefits and Advantages\n\n`;
-    const benefitIndex = topic.length % benefitPhrases.length;
-    article += benefitPhrases[benefitIndex] + '\n\n';
-    
-    article += `The primary advantages include:\n\n`;
-    article += `- **Enhanced Skills**: Develop core competencies that are valuable across multiple domains\n`;
-    article += `- **Better Opportunities**: Unlock new career paths and professional growth\n`;
-    article += `- **Practical Applications**: Apply knowledge to solve real-world challenges\n`;
-    article += `- **Competitive Edge**: Stand out in a crowded marketplace\n`;
-    article += `- **Continuous Learning**: Build a foundation for lifelong skill development\n\n`;
+    article += intro + '\n\n';
+    article += mainContent;
     
     // Practical tips
     if (wordCount >= 500) {
       article += `## Practical Tips and Best Practices\n\n`;
       article += `Here are some actionable tips to get started with ${topic}:\n\n`;
       
-      const numTips = Math.min(4, Math.ceil(wordCount / 200));
+      const tips = getCategoryTips(category, topic);
+      const numTips = Math.min(tips.length, Math.ceil(wordCount / 200));
+      
       for (let i = 0; i < numTips; i++) {
-        const tipIndex = (topic.length + i) % tips.length;
-        article += `${i + 1}. ${tips[tipIndex]}\n`;
+        article += `${i + 1}. ${tips[i]}\n`;
       }
       article += '\n';
     }
@@ -142,6 +198,61 @@ const ArticleWriter = () => {
     article += `Ready to take the next step? Explore advanced resources, join communities, and keep pushing the boundaries of what's possible with ${topic}.`;
     
     return article;
+  };
+
+  const getCategoryTips = (category, topic) => {
+    const tipSets = {
+      lifestyle: [
+        'Set aside time each day for activities you enjoy',
+        'Build meaningful relationships with family and friends',
+        'Practice self-care and prioritize your wellbeing',
+        'Set realistic goals and celebrate small wins',
+        'Surround yourself with positive influences',
+        'Take time to reflect on your experiences and growth'
+      ],
+      tech: [
+        'Start with the fundamentals before moving to advanced topics',
+        'Practice coding regularly to reinforce concepts',
+        'Build projects to apply what you learn',
+        'Join online communities for support and learning',
+        'Read documentation and stay updated with new features',
+        'Don\'t be afraid to experiment and make mistakes'
+      ],
+      health: [
+        'Start with small, sustainable changes to your routine',
+        'Stay hydrated and maintain a balanced diet',
+        'Find physical activities you enjoy',
+        'Get enough sleep and rest',
+        'Manage stress through relaxation techniques',
+        'Listen to your body and consult professionals when needed'
+      ],
+      business: [
+        'Define clear goals and create an action plan',
+        'Build a strong professional network',
+        'Continuously develop your skills and knowledge',
+        'Stay informed about industry trends and changes',
+        'Focus on delivering value to your clients or customers',
+        'Learn from both successes and failures'
+      ],
+      food: [
+        'Start with simple recipes and gradually try more complex dishes',
+        'Use fresh, quality ingredients whenever possible',
+        'Experiment with different flavors and cuisines',
+        'Learn basic knife skills and cooking techniques',
+        'Keep a well-stocked pantry with essential ingredients',
+        'Cook with family and friends to make it more enjoyable'
+      ],
+      general: [
+        'Start with the basics and build a strong foundation',
+        'Practice regularly to reinforce your understanding',
+        'Seek out real-world examples and case studies',
+        'Don\'t be afraid to make mistakes—they\'re learning opportunities',
+        'Stay updated with the latest trends and developments',
+        'Connect with a community of learners for support and insights'
+      ]
+    };
+    
+    return tipSets[category] || tipSets.general;
   };
 
   const handleCopy = () => {
