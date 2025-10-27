@@ -30,36 +30,60 @@ const GrammarChecker = () => {
   };
 
   const isValidEmail = (email) => {
+    // Strict email validation
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return emailRegex.test(email);
+    
+    // Check basic format
+    if (!emailRegex.test(email)) {
+      return false;
+    }
+    
+    // Check for common invalid patterns
+    const invalidPatterns = [
+      /\d{3,}/,  // Too many consecutive numbers
+      /[A-Z]{5,}/,  // Too many consecutive capital letters
+      /[^a-zA-Z0-9._%+-@]/g,  // Invalid characters
+      /@{2,}/,  // Multiple @ symbols
+      /\.{2,}/,  // Multiple dots in a row
+      /^@/,  // Starts with @
+      /@$/,  // Ends with @
+      /\.[0-9]/,  // Domain extension with numbers
+    ];
+    
+    return !invalidPatterns.some(pattern => pattern.test(email));
   };
 
   const checkGrammar = (text) => {
     const corrections = [];
     let corrected = text;
     
-    // Email validation - Check for invalid emails
-    const emailRegex = /[\w._%+-]+@[\w.-]+\.[a-z]{2,}/gi;
-    const emails = text.match(emailRegex);
+    // Email validation - Check for ALL email patterns (valid and invalid)
+    const allEmailPatterns = /[\w._%+-]+@[^\s<>"']+/gi;
+    const allEmails = text.match(allEmailPatterns);
     
-    if (emails) {
-      emails.forEach(email => {
-        if (!isValidEmail(email)) {
+    if (allEmails) {
+      allEmails.forEach(email => {
+        // Remove trailing punctuation
+        const cleanEmail = email.replace(/[.,;:!?]+$/, '');
+        
+        if (!isValidEmail(cleanEmail)) {
+          // Provide specific error messages
+          let errorMsg = 'Invalid email format';
+          
+          if (!cleanEmail.includes('.')) {
+            errorMsg = 'Missing domain extension (like .com)';
+          } else if (cleanEmail.match(/\d{3,}/)) {
+            errorMsg = 'Too many consecutive numbers';
+          } else if (cleanEmail.length < 5) {
+            errorMsg = 'Email too short';
+          } else if (cleanEmail.split('@').length > 2) {
+            errorMsg = 'Multiple @ symbols';
+          } else if (/[^a-zA-Z0-9._%+-@]/.test(cleanEmail)) {
+            errorMsg = 'Contains invalid characters';
+          }
+          
           corrections.push({
-            text: `⚠️ Invalid email format: "${email}"`,
-            count: corrections.length + 1
-          });
-        }
-      });
-    }
-    
-    // Check for common email mistakes
-    const invalidEmails = text.match(/@\w+[^.]/g);
-    if (invalidEmails) {
-      invalidEmails.forEach(inv => {
-        if (inv.includes('@') && !inv.includes('.')) {
-          corrections.push({
-            text: `⚠️ Email missing domain extension: "${inv}"`,
+            text: `⚠️ ${errorMsg}: "${cleanEmail}"`,
             count: corrections.length + 1
           });
         }
