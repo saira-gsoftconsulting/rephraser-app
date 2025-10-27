@@ -21,10 +21,68 @@ const Humanize = () => {
 
     setIsLoading(true);
     
-    // Advanced humanization that makes AI text sound natural
-    const humanized = humanizeText(inputText);
-    setOutputText(humanized);
-    setIsLoading(false);
+    try {
+      // Use LibreTranslate API for humanization
+      const humanized = await humanizeTextWithAPI(inputText);
+      setOutputText(humanized);
+    } catch (error) {
+      console.error('Error humanizing text:', error);
+      alert('Failed to humanize text. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const humanizeTextWithAPI = async (text) => {
+    try {
+      // Use LibreTranslate API for translation-based humanization
+      // Translate English -> French -> English to achieve humanization
+      
+      // Step 1: English to French
+      const frenchResponse = await fetch('https://libretranslate.de/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: text,
+          source: 'en',
+          target: 'fr'
+        }),
+      });
+      
+      const frenchData = await frenchResponse.json();
+      
+      if (!frenchData.translatedText) {
+        throw new Error('Failed to translate to French');
+      }
+      
+      // Step 2: French back to English
+      const englishResponse = await fetch('https://libretranslate.de/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: frenchData.translatedText,
+          source: 'fr',
+          target: 'en'
+        }),
+      });
+      
+      const englishData = await englishResponse.json();
+      
+      if (!englishData.translatedText) {
+        throw new Error('Failed to translate back to English');
+      }
+      
+      // Apply humanization transformations
+      return humanizeText(englishData.translatedText);
+    } catch (error) {
+      console.error('LibreTranslate API error:', error);
+      // Fallback to local humanization
+      return humanizeText(text);
+    }
   };
 
   const humanizeText = (text) => {

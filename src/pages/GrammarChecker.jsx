@@ -22,11 +22,78 @@ const GrammarChecker = () => {
 
     setIsLoading(true);
     
-    // Advanced grammar checking and correction
-    const result = checkGrammar(inputText);
-    setOutputText(result.corrected);
-    setErrors(result.errors);
-    setIsLoading(false);
+    try {
+      // Use LanguageTool API for grammar checking
+      const result = await checkGrammarWithAPI(inputText);
+      setOutputText(result.corrected);
+      setErrors(result.errors);
+    } catch (error) {
+      console.error('Error checking grammar:', error);
+      alert('Failed to check grammar. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const checkGrammarWithAPI = async (text) => {
+    const corrections = [];
+    let corrected = text;
+
+    try {
+      // LanguageTool API - free public instance
+      const response = await fetch('https://api.languagetool.org/v2/check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          text: text,
+          language: 'en-US',
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.matches && data.matches.length > 0) {
+        let offset = 0;
+        const sortedMatches = [...data.matches].sort((a, b) => a.offset - b.offset);
+        
+        sortedMatches.forEach(match => {
+          const errorText = text.substring(match.offset, match.offset + match.length);
+          
+          if (match.replacements && match.replacements.length > 0) {
+            const suggestion = match.replacements[0].value;
+            
+            // Add error to corrections list
+            corrections.push({
+              text: `⚠️ ${match.message}: "${errorText}" → "${suggestion}"`,
+              count: corrections.length + 1
+            });
+            
+            // Replace in corrected text
+            const index = corrected.indexOf(errorText, offset);
+            if (index !== -1) {
+              corrected = corrected.substring(0, index) + suggestion + corrected.substring(index + errorText.length);
+              offset = index + suggestion.length;
+            }
+          } else {
+            corrections.push({
+              text: `⚠️ ${match.message}: "${errorText}"`,
+              count: corrections.length + 1
+            });
+          }
+        });
+      }
+    } catch (error) {
+      console.error('LanguageTool API error:', error);
+      // Fallback to basic checking if API fails
+      return checkGrammar(text);
+    }
+
+    return {
+      corrected: corrected || text,
+      errors: corrections.length > 0 ? corrections : [{ text: 'No errors found!', count: 0 }]
+    };
   };
 
   const isValidEmail = (email) => {

@@ -31,10 +31,91 @@ const Paraphrasing = () => {
 
     setIsLoading(true);
     
-    // Advanced paraphrasing with mode-based transformations
-    const paraphrased = paraphraseText(inputText, selectedMode);
-    setOutputText(paraphrased);
-    setIsLoading(false);
+    try {
+      // Use LibreTranslate API for paraphrasing
+      const paraphrased = await paraphraseTextWithAPI(inputText, selectedMode);
+      setOutputText(paraphrased);
+    } catch (error) {
+      console.error('Error paraphrasing text:', error);
+      alert('Failed to paraphrase text. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const paraphraseTextWithAPI = async (text, mode) => {
+    try {
+      // Use LibreTranslate API for translation-based paraphrasing
+      // Translate English -> Spanish -> English to achieve paraphrasing
+      
+      // Step 1: English to Spanish
+      const spanishResponse = await fetch('https://libretranslate.de/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: text,
+          source: 'en',
+          target: 'es'
+        }),
+      });
+      
+      const spanishData = await spanishResponse.json();
+      
+      if (!spanishData.translatedText) {
+        throw new Error('Failed to translate to Spanish');
+      }
+      
+      // Step 2: Spanish back to English
+      const englishResponse = await fetch('https://libretranslate.de/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: spanishData.translatedText,
+          source: 'es',
+          target: 'en'
+        }),
+      });
+      
+      const englishData = await englishResponse.json();
+      
+      if (!englishData.translatedText) {
+        throw new Error('Failed to translate back to English');
+      }
+      
+      let paraphrased = englishData.translatedText;
+      
+      // Apply mode-specific transformations after translation
+      switch(mode) {
+        case 'creative':
+          paraphrased = applyCreativeStyle(paraphrased);
+          break;
+        case 'anti-plagiarism':
+          paraphrased = applyAntiPlagiarism(paraphrased);
+          break;
+        case 'academic':
+          paraphrased = applyAcademicStyle(paraphrased);
+          break;
+        case 'blog':
+          paraphrased = applyBlogStyle(paraphrased);
+          break;
+        case 'fluency':
+          paraphrased = applyFluency(paraphrased);
+          break;
+        case 'formal':
+          paraphrased = applyFormalStyle(paraphrased);
+          break;
+      }
+      
+      return paraphrased;
+    } catch (error) {
+      console.error('LibreTranslate API error:', error);
+      // Fallback to local paraphrasing
+      return paraphraseText(text, mode);
+    }
   };
 
   const paraphraseText = (text, mode) => {
