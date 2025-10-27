@@ -141,13 +141,101 @@ const GrammarChecker = () => {
         return match;
       });
     
-    // Add period at end if missing
-    if (corrected.trim() && !corrected.match(/[.!?]$/)) {
-      corrected = corrected.trim() + '.';
+    // Check for comma usage errors
+    const commaErrors = corrected.match(/,\s*,|^,|,\s*$/g);
+    if (commaErrors) {
+      commaErrors.forEach(() => {
+        corrections.push({
+          text: 'Fixed: Removed extra comma',
+          count: corrections.length + 1
+        });
+      });
+      corrected = corrected.replace(/,\s*,/g, ',').replace(/^,|,$/g, '');
+    }
+    
+    // Check for semicolon usage
+    if (corrected.includes(';;')) {
       corrections.push({
-        text: 'Added missing period',
+        text: 'Fixed: Removed double semicolon',
         count: corrections.length + 1
       });
+      corrected = corrected.replace(/;;+/g, ';');
+    }
+    
+    // Check for colon usage
+    if (corrected.includes('::')) {
+      corrections.push({
+        text: 'Fixed: Removed double colon',
+        count: corrections.length + 1
+      });
+      corrected = corrected.replace(/::+/g, ':');
+    }
+    
+    // Check for multiple periods
+    const multiplePeriods = corrected.match(/\.{3,}/g);
+    if (multiplePeriods) {
+      corrections.push({
+        text: 'Fixed: Multiple periods (should be ... for ellipsis)',
+        count: corrections.length + 1
+      });
+      corrected = corrected.replace(/\.{3,}/g, '...');
+    }
+    
+    // Check for exclamation marks
+    if (corrected.match(/!!+/)) {
+      corrections.push({
+        text: 'Fixed: Multiple exclamation marks',
+        count: corrections.length + 1
+      });
+      corrected = corrected.replace(/!{2,}/g, '!');
+    }
+    
+    // Check for question marks
+    if (corrected.match(/\?\?+/)) {
+      corrections.push({
+        text: 'Fixed: Multiple question marks',
+        count: corrections.length + 1
+      });
+      corrected = corrected.replace(/\?{2,}/g, '?');
+    }
+    
+    // Check for spaces before punctuation
+    if (corrected.match(/\s+[.,!?;:]/g)) {
+      corrections.push({
+        text: 'Fixed: Removed spaces before punctuation',
+        count: corrections.length + 1
+      });
+      corrected = corrected.replace(/\s+([.,!?;:])/g, '$1');
+    }
+    
+    // Check for missing spaces after punctuation
+    if (corrected.match(/[.,!?;:]([^\s])/g)) {
+      corrections.push({
+        text: 'Fixed: Added missing spaces after punctuation',
+        count: corrections.length + 1
+      });
+      corrected = corrected.replace(/([.,!?;:])([^\s])/g, '$1 $2');
+    }
+    
+    // Check for spacing issues
+    if (corrected.match(/\s{2,}/g)) {
+      corrections.push({
+        text: 'Fixed: Removed extra spaces',
+        count: corrections.length + 1
+      });
+      corrected = corrected.replace(/\s{2,}/g, ' ');
+    }
+    
+    // Add period at end if missing (only for statements)
+    if (corrected.trim() && !corrected.match(/[.!?]$/)) {
+      const lastChar = corrected.trim().slice(-1);
+      if (/[a-z]/.test(lastChar)) {
+        corrected = corrected.trim() + '.';
+        corrections.push({
+          text: 'Added missing period at the end',
+          count: corrections.length + 1
+        });
+      }
     }
     
     return {
