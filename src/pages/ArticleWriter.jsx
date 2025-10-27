@@ -19,10 +19,59 @@ const ArticleWriter = () => {
 
     setIsLoading(true);
     
-    setTimeout(() => {
-      setOutputText(`Title: ${topic}\n\nThis is a generated article about "${topic}". The content is optimized for readability and SEO. In a real application, this would be powered by advanced AI to generate comprehensive, well-researched articles on any topic.`);
-      setIsLoading(false);
-    }, 2000);
+    // Generate article based on word length
+    const article = generateArticle(topic, parseInt(wordLength));
+    setOutputText(article);
+    setIsLoading(false);
+  };
+
+  const generateArticle = (topic, wordCount) => {
+    const articles = {
+      introduction: [
+        `# ${topic.charAt(0).toUpperCase() + topic.slice(1)}: A Comprehensive Guide`,
+        `In today's fast-paced world, understanding ${topic} has become increasingly important. This article explores the key aspects, benefits, and practical applications of ${topic}.`,
+      ],
+      mainContent: [
+        `## Why ${topic} Matters`,
+        `${topic.charAt(0).toUpperCase() + topic.slice(1)} plays a crucial role in modern life. Whether you're a beginner or an experienced professional, understanding the fundamentals is essential.`,
+        `## Key Benefits`,
+        `The advantages of ${topic} include:`,
+        `- Improved efficiency and productivity`,
+        `- Better understanding of core concepts`,
+        `- Enhanced problem-solving skills`,
+        `- Practical real-world applications`,
+      ],
+      advanced: [
+        `## Advanced Considerations`,
+        `For those looking to dive deeper into ${topic}, consider these advanced topics:`,
+        `- Best practices and industry standards`,
+        `- Common challenges and solutions`,
+        `- Future trends and developments`,
+        `- Case studies and examples`,
+      ],
+      conclusion: [
+        `## Conclusion`,
+        `In summary, ${topic} offers numerous opportunities for growth and development. By understanding the fundamental concepts and applying them effectively, you can achieve significant results. Continue exploring and learning to stay ahead in this dynamic field.`,
+      ],
+    };
+
+    let article = '';
+    
+    // Add introduction
+    article += articles.introduction.join('\n\n') + '\n\n';
+    
+    // Add main content
+    article += articles.mainContent.join('\n\n') + '\n\n';
+    
+    // Add advanced section if word count is higher
+    if (wordCount >= 800) {
+      article += articles.advanced.join('\n\n') + '\n\n';
+    }
+    
+    // Add conclusion
+    article += articles.conclusion.join('\n\n');
+    
+    return article;
   };
 
   const handleCopy = () => {
