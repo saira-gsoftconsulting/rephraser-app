@@ -19,13 +19,29 @@ const ArticleWriter = () => {
 
     setIsLoading(true);
     
-    // Generate article based on word length
-    const article = generateArticle(topic, parseInt(wordLength));
-    setOutputText(article);
-    setIsLoading(false);
+    try {
+      // Generate article based on word length
+      const article = generateArticle(topic, parseInt(wordLength));
+      setOutputText(article);
+    } catch (error) {
+      console.error('Error generating article:', error);
+      alert('An error occurred while generating the article. Please try again.');
+      setOutputText('');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const generateArticle = (topic, wordCount) => {
+    // Validate inputs
+    if (!topic || topic.trim().length === 0) {
+      throw new Error('Topic is required');
+    }
+    
+    if (isNaN(wordCount) || wordCount < 100) {
+      wordCount = 500; // Default to 500 words
+    }
+    
     // Enhanced content generation with more variety
     const introPhrases = [
       `In today's digital age, ${topic} has emerged as a critical skill.`,
