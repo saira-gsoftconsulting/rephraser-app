@@ -31,63 +31,124 @@ const Paraphrasing = () => {
 
     setIsLoading(true);
     
-    try {
-      // Use LibreTranslate API (free alternative)
-      const response = await fetch('https://libretranslate.de/translate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          q: inputText,
-          source: 'en',
-          target: 'es', // Translate to Spanish first
-          format: 'text',
-        }),
-      });
-
-      const spanish = await response.json();
-      
-      // Translate back to English for paraphrasing effect
-      const backResponse = await fetch('https://libretranslate.de/translate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          q: spanish.translatedText,
-          source: 'es',
-          target: 'en',
-          format: 'text',
-        }),
-      });
-
-      const english = await backResponse.json();
-      setOutputText(english.translatedText);
-    } catch (error) {
-      // Fallback: Use a simple word replacement algorithm
-      const words = inputText.split(' ');
-      const paraphrased = words.map(word => {
-        const synonyms = {
-          'good': 'excellent',
-          'bad': 'poor',
-          'important': 'significant',
-          'help': 'assist',
-          'use': 'utilize',
-          'think': 'consider',
-          'want': 'desire',
-          'need': 'require',
-          'get': 'obtain',
-          'make': 'create'
-        };
-        const lowerWord = word.toLowerCase().replace(/[.,!?;:]/g, '');
-        return synonyms[lowerWord] ? word.replace(lowerWord, synonyms[lowerWord]) : word;
-      }).join(' ');
-      
-      setOutputText(paraphrased);
-    }
-    
+    // Advanced paraphrasing with mode-based transformations
+    const paraphrased = paraphraseText(inputText, selectedMode);
+    setOutputText(paraphrased);
     setIsLoading(false);
+  };
+
+  const paraphraseText = (text, mode) => {
+    // Split into sentences
+    const sentences = text.split(/(?<=[.!?])\s+/);
+    
+    return sentences.map(sentence => {
+      let paraphrased = sentence;
+      
+      // Apply mode-specific transformations
+      switch(mode) {
+        case 'creative':
+          paraphrased = applyCreativeStyle(paraphrased);
+          break;
+        case 'anti-plagiarism':
+          paraphrased = applyAntiPlagiarism(paraphrased);
+          break;
+        case 'academic':
+          paraphrased = applyAcademicStyle(paraphrased);
+          break;
+        case 'blog':
+          paraphrased = applyBlogStyle(paraphrased);
+          break;
+        case 'fluency':
+          paraphrased = applyFluency(paraphrased);
+          break;
+        case 'formal':
+          paraphrased = applyFormalStyle(paraphrased);
+          break;
+        default:
+          paraphrased = applyDefaultParaphrasing(paraphrased);
+      }
+      
+      return paraphrased;
+    }).join(' ');
+  };
+
+  const applyCreativeStyle = (text) => {
+    const replacements = {
+      'good': 'excellent', 'great': 'amazing', 'bad': 'terrible',
+      'very': 'incredibly', 'many': 'numerous', 'important': 'crucial',
+      'help': 'assist', 'use': 'utilize', 'start': 'commence',
+      'show': 'demonstrate', 'get': 'obtain', 'make': 'create',
+      'think': 'contemplate', 'see': 'observe'
+    };
+    return replaceWords(text, replacements);
+  };
+
+  const applyAntiPlagiarism = (text) => {
+    return text
+      .replace(/Firstly/g, 'To begin with')
+      .replace(/Secondly/g, 'Furthermore')
+      .replace(/Lastly/g, 'Finally')
+      .replace(/In conclusion/g, 'To summarize');
+  };
+
+  const applyAcademicStyle = (text) => {
+    const replacements = {
+      'show': 'demonstrate', 'prove': 'establish', 'use': 'employ',
+      'make': 'generate', 'get': 'acquire', 'think': 'argue',
+      'important': 'significant', 'good': 'effective'
+    };
+    return replaceWords(text, replacements);
+  };
+
+  const applyBlogStyle = (text) => {
+    return text
+      .replace(/Firstly/g, 'First things first')
+      .replace(/However/g, 'But here\'s the thing')
+      .replace(/Therefore/g, 'So')
+      .replace(/In addition/g, 'Plus')
+      .replace(/Furthermore/g, 'On top of that');
+  };
+
+  const applyFluency = (text) => {
+    return text
+      .replace(/cannot/g, 'can\'t')
+      .replace(/will not/g, 'won\'t')
+      .replace(/is not/g, 'isn\'t')
+      .replace(/are not/g, 'aren\'t')
+      .replace(/do not/g, 'don\'t');
+  };
+
+  const applyFormalStyle = (text) => {
+    const replacements = {
+      'can\'t': 'cannot', 'won\'t': 'will not', 'don\'t': 'do not',
+      'isn\'t': 'is not', 'aren\'t': 'are not', 'wasn\'t': 'was not',
+      'get': 'obtain', 'buy': 'purchase', 'show': 'demonstrate'
+    };
+    return replaceWords(text, replacements);
+  };
+
+  const applyDefaultParaphrasing = (text) => {
+    const replacements = {
+      'good': 'excellent', 'bad': 'poor', 'important': 'significant',
+      'help': 'assist', 'use': 'utilize', 'think': 'consider'
+    };
+    return replaceWords(text, replacements);
+  };
+
+  const replaceWords = (text, replacements) => {
+    let result = text;
+    Object.keys(replacements).forEach(word => {
+      const regex = new RegExp(`\\b${word}\\b`, 'gi');
+      result = result.replace(regex, (match) => {
+        // Preserve capitalization
+        return match === match.toUpperCase() 
+          ? replacements[word].toUpperCase()
+          : match === match[0].toUpperCase() + match.slice(1).toLowerCase()
+          ? replacements[word][0].toUpperCase() + replacements[word].slice(1)
+          : replacements[word].toLowerCase();
+      });
+    });
+    return result;
   };
 
   const handleCopy = () => {

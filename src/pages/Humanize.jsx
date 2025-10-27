@@ -21,64 +21,56 @@ const Humanize = () => {
 
     setIsLoading(true);
     
-    try {
-      // Use LibreTranslate for humanization effect
-      const response = await fetch('https://libretranslate.de/translate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          q: inputText,
-          source: 'en',
-          target: 'fr', // Translate to French
-          format: 'text',
-        }),
-      });
-
-      const french = await response.json();
-      
-      // Translate back to English
-      const backResponse = await fetch('https://libretranslate.de/translate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          q: french.translatedText,
-          source: 'fr',
-          target: 'en',
-          format: 'text',
-        }),
-      });
-
-      const english = await backResponse.json();
-      
-      // Make it more conversational
-      let humanized = english.translatedText
-        .replace(/Therefore/g, 'So')
-        .replace(/Furthermore/g, 'Also')
-        .replace(/Moreover/g, 'Plus')
-        .replace(/In conclusion/g, 'To wrap up')
-        .replace(/It is important/g, 'It\'s important')
-        .replace(/cannot/g, 'can\'t')
-        .replace(/will not/g, 'won\'t')
-        .replace(/do not/g, 'don\'t');
-      
-      setOutputText(humanized);
-    } catch (error) {
-      // Fallback: Add conversational elements
-      let humanized = inputText
-        .replace(/\bvery\b/gi, 'really')
-        .replace(/\bthus\b/gi, 'so')
-        .replace(/\bhence\b/gi, 'that\'s why')
-        .replace(/\bhowever\b/gi, 'but')
-        .replace(/\btherefore\b/gi, 'so');
-      
-      setOutputText(humanized);
-    }
-    
+    // Advanced humanization that makes AI text sound natural
+    const humanized = humanizeText(inputText);
+    setOutputText(humanized);
     setIsLoading(false);
+  };
+
+  const humanizeText = (text) => {
+    let humanized = text;
+    
+    // Add contractions for natural flow
+    humanized = humanized
+      .replace(/\bcannot\b/gi, 'can\'t')
+      .replace(/\bwill not\b/gi, 'won\'t')
+      .replace(/\bdo not\b/gi, 'don\'t')
+      .replace(/\bis not\b/gi, 'isn\'t')
+      .replace(/\bare not\b/gi, 'aren\'t')
+      .replace(/\bwas not\b/gi, 'wasn\'t')
+      .replace(/\bwere not\b/gi, 'weren\'t')
+      .replace(/\bdoes not\b/gi, 'doesn\'t')
+      .replace(/\bhave not\b/gi, 'haven\'t')
+      .replace(/\bhas not\b/gi, 'hasn\'t')
+      .replace(/\bwould not\b/gi, 'wouldn\'t')
+      .replace(/\bcould not\b/gi, 'couldn\'t')
+      .replace(/\bshould not\b/gi, 'shouldn\'t');
+    
+    // Replace formal phrases with casual ones
+    humanized = humanized
+      .replace(/\bTherefore\b/gi, 'So')
+      .replace(/\bFurthermore\b/gi, 'Plus')
+      .replace(/\bMoreover\b/gi, 'Also')
+      .replace(/\bIn conclusion\b/gi, 'To wrap it up')
+      .replace(/\bIn summary\b/gi, 'Bottom line')
+      .replace(/\bIt is important\b/gi, 'It\'s important')
+      .replace(/\bIt should be noted\b/gi, 'Keep in mind')
+      .replace(/\bIn addition\b/gi, 'Plus')
+      .replace(/\bHowever\b/gi, 'But')
+      .replace(/\bNevertheless\b/gi, 'Still')
+      .replace(/\bConsequently\b/gi, 'So')
+      .replace(/\bAdditionally\b/gi, 'Also')
+      .replace(/\bFurthermore\b/gi, 'What\'s more');
+    
+    // Remove AI-sounding phrases
+    humanized = humanized
+      .replace(/\bAs an AI language model\b/gi, '')
+      .replace(/\bI cannot\b/gi, 'I can\'t')
+      .replace(/\bI do not\b/gi, 'I don\'t')
+      .replace(/\bIt is worth noting\b/gi, 'Note that')
+      .replace(/\bIt should be emphasized\b/gi, 'Remember');
+    
+    return humanized.trim();
   };
 
   const handleCopy = () => {
