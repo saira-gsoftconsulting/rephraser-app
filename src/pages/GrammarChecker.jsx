@@ -29,15 +29,49 @@ const GrammarChecker = () => {
     setIsLoading(false);
   };
 
+  const isValidEmail = (email) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
   const checkGrammar = (text) => {
     const corrections = [];
     let corrected = text;
+    
+    // Email validation - Check for invalid emails
+    const emailRegex = /[\w._%+-]+@[\w.-]+\.[a-z]{2,}/gi;
+    const emails = text.match(emailRegex);
+    
+    if (emails) {
+      emails.forEach(email => {
+        if (!isValidEmail(email)) {
+          corrections.push({
+            text: `⚠️ Invalid email format: "${email}"`,
+            count: corrections.length + 1
+          });
+        }
+      });
+    }
+    
+    // Check for common email mistakes
+    const invalidEmails = text.match(/@\w+[^.]/g);
+    if (invalidEmails) {
+      invalidEmails.forEach(inv => {
+        if (inv.includes('@') && !inv.includes('.')) {
+          corrections.push({
+            text: `⚠️ Email missing domain extension: "${inv}"`,
+            count: corrections.length + 1
+          });
+        }
+      });
+    }
     
     // Common spelling mistakes
     const spelling = {
       'teh': 'the', 'adn': 'and', 'taht': 'that', 'wich': 'which',
       'recieve': 'receive', 'seperate': 'separate', 'occured': 'occurred',
-      'existance': 'existence', 'accomodate': 'accommodate', 'definately': 'definitely'
+      'existance': 'existence', 'accomodate': 'accommodate', 'definately': 'definitely',
+      'seperate': 'separate', 'accomodation': 'accommodation', 'occassion': 'occasion'
     };
     
     Object.keys(spelling).forEach(mistake => {
@@ -55,8 +89,8 @@ const GrammarChecker = () => {
     corrected = corrected
       .replace(/\bi\b/g, 'I')  // Capitalize 'i'
       .replace(/\b(\w+)s (\w+)s\b/gi, '$1 $2s')  // Fix double plurals
-      .replace(/\ba ([aeiou])/gi, 'an $1')  // a → an before vowels
-      .replace(/\ban ([^aeiou])/gi, 'a $1');  // an → a before consonants (simplified)
+      .replace(/\ba ([aeiouAEIOU])/g, 'an $1')  // a → an before vowels
+      .replace(/\ban ([^aeiouAEIOU])/g, 'a $1');  // an → a before consonants
     
     // Common grammar mistakes
     corrected = corrected
