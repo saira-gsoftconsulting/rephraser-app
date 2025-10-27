@@ -21,10 +21,64 @@ const Humanize = () => {
 
     setIsLoading(true);
     
-    setTimeout(() => {
-      setOutputText(inputText + ' (Humanized version - More natural and conversational)');
-      setIsLoading(false);
-    }, 1500);
+    try {
+      // Use LibreTranslate for humanization effect
+      const response = await fetch('https://libretranslate.de/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: inputText,
+          source: 'en',
+          target: 'fr', // Translate to French
+          format: 'text',
+        }),
+      });
+
+      const french = await response.json();
+      
+      // Translate back to English
+      const backResponse = await fetch('https://libretranslate.de/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: french.translatedText,
+          source: 'fr',
+          target: 'en',
+          format: 'text',
+        }),
+      });
+
+      const english = await backResponse.json();
+      
+      // Make it more conversational
+      let humanized = english.translatedText
+        .replace(/Therefore/g, 'So')
+        .replace(/Furthermore/g, 'Also')
+        .replace(/Moreover/g, 'Plus')
+        .replace(/In conclusion/g, 'To wrap up')
+        .replace(/It is important/g, 'It\'s important')
+        .replace(/cannot/g, 'can\'t')
+        .replace(/will not/g, 'won\'t')
+        .replace(/do not/g, 'don\'t');
+      
+      setOutputText(humanized);
+    } catch (error) {
+      // Fallback: Add conversational elements
+      let humanized = inputText
+        .replace(/\bvery\b/gi, 'really')
+        .replace(/\bthus\b/gi, 'so')
+        .replace(/\bhence\b/gi, 'that\'s why')
+        .replace(/\bhowever\b/gi, 'but')
+        .replace(/\btherefore\b/gi, 'so');
+      
+      setOutputText(humanized);
+    }
+    
+    setIsLoading(false);
   };
 
   const handleCopy = () => {

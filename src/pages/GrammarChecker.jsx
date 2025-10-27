@@ -22,11 +22,60 @@ const GrammarChecker = () => {
 
     setIsLoading(true);
     
-    setTimeout(() => {
-      setOutputText(inputText + ' (Checked and corrected)');
-      setErrors([{ text: 'Fixed 2 grammar errors', count: 2 }]);
-      setIsLoading(false);
-    }, 1500);
+    try {
+      // Use LanguageTool API for grammar checking
+      const response = await fetch('https://api.languagetool.org/v2/check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          text: inputText,
+          language: 'en-US',
+        }),
+      });
+
+      const data = await response.json();
+      
+      // Fix the errors in the text
+      let correctedText = inputText;
+      const errorList = [];
+      
+      // Sort matches by offset in reverse order to fix from end to beginning
+      const matches = data.matches.sort((a, b) => b.offset - a.offset);
+      
+      matches.forEach((match, index) => {
+        if (match.replacements && match.replacements.length > 0) {
+          const replacement = match.replacements[0].value;
+          const start = match.offset;
+          const end = start + match.length;
+          
+          correctedText = correctedText.substring(0, start) + replacement + correctedText.substring(end);
+          
+          errorList.push({
+            text: `${match.message} - Suggested: "${replacement}"`,
+            count: index + 1
+          });
+        }
+      });
+      
+      setOutputText(correctedText);
+      setErrors(errorList.length > 0 ? errorList : [{ text: 'No errors found!', count: 0 }]);
+    } catch (error) {
+      // Fallback: Simple grammar corrections
+      let corrected = inputText
+        .replace(/\bteh\b/gi, 'the')
+        .replace(/\badn\b/gi, 'and')
+        .replace(/\bteh\b/gi, 'the')
+        .replace(/\bisnt\b/gi, "isn't")
+        .replace(/\bwasnt\b/gi, "wasn't")
+        .replace(/\bdont\b/gi, "don't");
+      
+      setOutputText(corrected);
+      setErrors([{ text: 'Used fallback corrections', count: 1 }]);
+    }
+    
+    setIsLoading(false);
   };
 
   const handleCopy = () => {

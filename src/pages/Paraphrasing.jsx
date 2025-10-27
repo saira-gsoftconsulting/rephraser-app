@@ -31,27 +31,63 @@ const Paraphrasing = () => {
 
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      // Simple paraphrase simulation (in real app, this would be an API call)
-      const paraphrased = inputText
-        .split(' ')
-        .map(word => {
-          // Simple synonym replacement
-          const synonyms = {
-            'good': 'excellent',
-            'bad': 'poor',
-            'important': 'significant',
-            'help': 'assist',
-            'use': 'utilize'
-          };
-          return synonyms[word.toLowerCase()] || word;
-        })
-        .join(' ');
+    try {
+      // Use LibreTranslate API (free alternative)
+      const response = await fetch('https://libretranslate.de/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: inputText,
+          source: 'en',
+          target: 'es', // Translate to Spanish first
+          format: 'text',
+        }),
+      });
+
+      const spanish = await response.json();
       
-      setOutputText(paraphrased || inputText);
-      setIsLoading(false);
-    }, 1500);
+      // Translate back to English for paraphrasing effect
+      const backResponse = await fetch('https://libretranslate.de/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: spanish.translatedText,
+          source: 'es',
+          target: 'en',
+          format: 'text',
+        }),
+      });
+
+      const english = await backResponse.json();
+      setOutputText(english.translatedText);
+    } catch (error) {
+      // Fallback: Use a simple word replacement algorithm
+      const words = inputText.split(' ');
+      const paraphrased = words.map(word => {
+        const synonyms = {
+          'good': 'excellent',
+          'bad': 'poor',
+          'important': 'significant',
+          'help': 'assist',
+          'use': 'utilize',
+          'think': 'consider',
+          'want': 'desire',
+          'need': 'require',
+          'get': 'obtain',
+          'make': 'create'
+        };
+        const lowerWord = word.toLowerCase().replace(/[.,!?;:]/g, '');
+        return synonyms[lowerWord] ? word.replace(lowerWord, synonyms[lowerWord]) : word;
+      }).join(' ');
+      
+      setOutputText(paraphrased);
+    }
+    
+    setIsLoading(false);
   };
 
   const handleCopy = () => {
